@@ -1,0 +1,342 @@
+<!-- chocolates-viewer -->
+
+
+
+<!-- User interface -->
+<html>
+    <head>
+        <style>
+            body {
+                font-family: 'lato', sans-serif;
+                }
+            h2 {
+                font-size: 26px;
+                margin: 20px 0;
+                text-align: center;
+                small {
+                    font-size: 0.5em;
+                }
+            }
+            .table2 {
+                max-width: 1000px;
+                margin-left: auto;
+                margin-right: auto;
+                padding-left: 10px;
+                padding-right: 10px;
+            }
+            .table-header {
+                background-color: #8f6e6e;
+                font-size: 14px;
+                text-transform: uppercase;
+                letter-spacing: 0.03em;
+            }
+            .table-row {
+                background-color: #ffffff;
+                box-shadow: 0px 0px 9px 0px rgba(0,0,0,0.1);
+            }
+        </style>
+        <title> view Chocolates</title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    </head>
+    <body>
+        
+        <div id="create-update" style="display:none">
+            <h2><span id="create-header">Create a </span> <span id="update-header">Update</span> Chocolate</h2>
+            <table class="table2" id="create-update-form">
+                <tr class="table-row">
+                    <td class="table-data"><b>id</b></td>
+                    <td class="table-data"><input type="number" name="id" label="ID" id="idinput"> </td>   
+                </tr>
+
+                <tr class="table-row">
+                    <td class="table-data"><b>brand</b></td>
+                    <td class="table-data"><input type="text" name="brand" label="BRAND"> </td>  
+                </tr>
+                <tr class="table-row">
+                    <td class="table-data"><b>kind</b></td>
+                    <td class="table-data"><input type="text" name="kind" label="KIND"> </td>
+                </tr>
+                <tr class="table-row">
+                    <td class="table-data"><b>price</b></td>
+                    <td class="table-data"><input type="currency" name="price" label="PRICE"> </td>
+                </tr> 
+                <tr>
+                    <td><button id="update-button" onclick="doUpdate()">Update</button></td>
+                    <td><button id="create-button" onclick="doCreate()">Create</button></td>
+                </tr>
+                <tr>
+                    <td class="table-data"><i>Note: id is auto-incremented</i></td>
+                </tr>
+                        
+            </table>
+        </div> 
+        <div id="display">
+        <center>
+        <img src="choco.png" height="200" width="200">
+        </center>
+        <h2>Chocolates</h2>
+        <h2><button onclick="showCreate()">Create</button></h2>
+        <table class="table" id="chocolatesTable">
+            <tr class="table-row">
+                <th name="id" class="table-header">id</th>
+                <th class="table-header">brand</th>
+                <th class="table-header">kind</th>
+                <th class="table-header">price</th>
+                <th class="table-header">Update</th>
+                <th class="table-header">Delete</th>
+            </tr>
+        </table>
+        </div>
+    </body>
+
+    <!-- Functions -->
+
+    <script>
+
+        // Function to populate the table on server.
+        function populateTable(){
+            clearForm()
+            //ajax getAll
+            $.ajax({
+            "url": "http://127.0.0.1:5000/chocolates",
+            "method":"GET",
+            "data":"",
+            "dataType": "JSON",
+            "success":function(result){
+                //console.log(result);
+                for (chocolate of result){
+                    addChocolateToTable(chocolate);
+                }
+                
+            },
+            "error":function(xhr,status,error){
+                console.log("error: "+status+" msg:"+error);
+            }
+        })
+        };
+
+
+        // Function to add chocolate to table.
+        function addChocolateToTable(chocolate){
+            //console.log("working so far")
+            var table=document.getElementById("chocolatesTable");
+            var row=table.insertRow(-1);
+            row.setAttribute('id',chocolate.id)
+            var cell1=row.insertCell(0);
+            cell1.innerHTML= chocolate.id;
+            var cell2 = row.insertCell(1);
+            cell2.innerHTML = chocolate.brand
+            var cell3 = row.insertCell(2);
+            cell3.innerHTML = chocolate.kind
+            var cell4 = row.insertCell(3);
+            cell4.innerHTML = chocolate.price
+            var cell5 = row.insertCell(4);
+            cell5.innerHTML = '<button onclick="showUpdate(this)">Update</button>'
+            var cell6 = row.insertCell(5);
+            cell6.innerHTML = '<button onclick=doDelete(this)>Delete</button>'
+            console.log("done")
+        }
+    
+
+        populateTable()   
+
+        // Function to chow create form.
+        function showCreate(){
+            document.getElementById('display').style.display="none"
+            document.getElementById('chocolatesTable').style.display="none"
+            document.getElementById('create-update').style.display="block"
+
+            document.getElementById('create-header').style.display="inline"
+            document.getElementById('update-header').style.display="none"
+
+            document.getElementById('create-button').style.display="block"
+            document.getElementById('update-button').style.display="none"
+        };
+
+        // Function to display table.
+        function showDisplay(){
+            document.getElementById('display').style.display="block"
+            document.getElementById('chocolatesTable').style.display="block"
+            document.getElementById('create-update').style.display="none"
+        };
+
+        
+
+        // Function to add created chocolate to table.
+        function doCreate(){
+            
+            console.log("im in doCreate")
+            chocolate=getChocolateFromForm()
+            createChocolateAjax(chocolate)   
+        };
+
+        // Function to create chocolate on server.
+        function createChocolateAjax(chocolate){
+        
+            console.log(JSON.stringify(chocolate));
+            $.ajax({
+                "url": "http://127.0.0.1:5000/chocolates",
+                "method":"POST",
+                "data":JSON.stringify(chocolate),
+                "dataType": "JSON",
+                contentType: "application/json; charset=utf-8",
+                "success":function(result){
+                    //console.log(result);
+                    chocolate.id = result.id
+                    addChocolateToTable(chocolate)
+                    clearForm()
+                    showDisplay()
+                },
+                "error":function(xhr,status,error){
+                    console.log("error: "+status+" msg:"+error);
+                }
+            });
+        };
+
+        // Function to show the update form.
+        function showUpdate(r){
+            
+            var rowElement = r.parentNode.parentNode
+
+            var chocolate = getChocolateFromRow(rowElement)
+            populateForm(chocolate)
+
+            document.getElementById('create-header').style.display="none"
+            document.getElementById('update-header').style.display="inline"
+
+            document.getElementById('display').style.display="none"
+            document.getElementById('chocolatesTable').style.display="none"
+            document.getElementById('create-update').style.display="block"
+
+            document.getElementById('create-button').style.display="none"
+            document.getElementById('update-button').style.display="block"
+
+        }
+
+        // Function to get the chocolate from table row.
+        function getChocolateFromRow(rowElement){
+            var chocolate ={}
+            chocolate.id  = rowElement.getAttribute('id')
+            chocolate.brand = rowElement.cells[1].firstChild.textContent
+            chocolate.kind = rowElement.cells[2].firstChild.textContent
+            chocolate.price = parseFloat(rowElement.cells[3].firstChild.textContent,10)
+            return chocolate
+        };
+
+        // Function to populate create-update form with chocolate  we want to update.
+        function populateForm(chocolate){
+            var form = document.getElementById('create-update-form')
+
+            form.querySelector('input[name="id"]').value  = chocolate.id
+            form.querySelector('input[name="id"]').disabled = true
+
+            
+            form.querySelector('input[name="brand"]').value= chocolate.brand
+            form.querySelector('input[name="kind"]').value= chocolate.kind
+            form.querySelector('input[name="price"]').value= chocolate.price
+            return chocolate
+        }
+
+        // Function to update the chocolate.
+        function doUpdate(){
+            var chocolate = getChocolateFromForm();
+            var rowElement = document.getElementById(chocolate.id);
+            updateChocolateAjax(chocolate);
+            updateChocolateTable(rowElement,chocolate);
+        
+            
+            showDisplay();
+            clearForm();
+
+        };
+
+        // Function to update the chocolate in table.
+        function updateChocolateTable(rowElement, chocolate){
+            console.log("updating table")
+            rowElement.cells[0].firstChild.textContent= chocolate.id  
+            rowElement.cells[1].firstChild.textContent= chocolate.brand 
+            rowElement.cells[2].firstChild.textContent= chocolate.kind
+            rowElement.cells[3].firstChild.textContent= chocolate.price
+        };
+
+        // Function to update the chocolate on server.
+        function updateChocolateAjax(chocolate){
+            console.log(JSON.stringify(chocolate));
+            $.ajax({
+                "url": "http://127.0.0.1:5000/chocolates/"+encodeURI(chocolate.id),
+                "method":"PUT",
+                "data":JSON.stringify(chocolate),
+                "dataType": "JSON",
+                contentType: "application/json; charset=utf-8",
+                "success":function(result){
+                // console.log(result);
+                    
+                },
+                "error":function(xhr,status,error){
+                    console.log("error: "+status+" msg:"+error);
+                }
+            });
+        };
+
+        // Function to get the chocolate info from create-update form.
+        function getChocolateFromForm(){
+            var form = document.getElementById('create-update-form')
+            var chocolate = {}
+            
+            chocolate.id = parseInt(form.querySelector('input[name="id"]').value,10)
+            chocolate.brand = form.querySelector('input[name="brand"]').value
+            chocolate.kind = form.querySelector('input[name="kind"]').value
+            chocolate.price = parseInt(form.querySelector('input[name="price"]').value,10)
+            console.log(chocolate)
+            return chocolate
+            };
+
+        // Function to delete chocolate from table.
+        function doDelete(r){
+            var tableElement = document.getElementById('chocolatesTable');
+            var rowElement = r.parentNode.parentNode;
+            var index = rowElement.rowIndex;
+            deleteChocolateAjax(rowElement.getAttribute("id"));
+            tableElement.deleteRow(index);
+
+        };
+
+        // Function to delete the chocolate from server.
+        function deleteChocolateAjax(id){ 
+            //console.log(JSON.stringify('deleting '+id));
+            $.ajax({
+                "url": "http://127.0.0.1:5000/chocolates/"+encodeURI(id),
+                "method":"DELETE",
+                "data":"",
+                "dataType": "JSON",
+                contentType: "application/json; charset=utf-8",
+                "success":function(result){
+                    //console.log(result);
+                    
+                },
+                "error":function(xhr,status,error){
+                    console.log("error: "+status+" msg:"+error);
+                }
+            });
+        };
+
+        //Function to clear create-update form.
+        function clearForm(){
+            console.log("clearing the form")
+            var form = document.getElementById('create-update-form')
+
+            form.querySelector('input[name="id"]').value=''
+            form.querySelector('input[name="id"]').disabled=true
+            form.querySelector('input[name="brand"]').value=''
+            form.querySelector('input[name="kind"]').value=''
+            form.querySelector('input[name="price"]').value=''
+        };
+
+    
+
+    </script>
+
+</html>
+
