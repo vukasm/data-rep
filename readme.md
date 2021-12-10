@@ -1,3 +1,8 @@
+# Data Representation
+## Project 2021
+
+![Chocolates](https://github.com/vukasm/data-rep/blob/master/staticpages/choco.png)
+
 This resository represents my project for the Data representation module at GMIT.
 
 
@@ -11,7 +16,7 @@ The topic of my project is table called Chocolates, which contains:
 
 The web page gives an option to create, update or delete a chocolate from the table.
 
-How to run this:
+**How to run this:**
 
 1. Make sure you have Python installed.
 2. Make sure you have MySQL server installed.
@@ -24,7 +29,7 @@ How to run this:
 
 
 
-List of relevant files:
+**List of relevant files:**
 1. rest-server.py with RESTful API
 2. ChocolatesDAO.py containing chocolates DAO
 3. dbconfig-template.py  for the user to be able to run the code on different computers
